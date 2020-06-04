@@ -23,7 +23,7 @@ def segment(impath, outpath, **kwargs):
     max_square_bbox = get_max_bbox(boxes)
     for box in boxes:
         x, y, w, h = box
-        outfile = "{}/sprite_{num:0{width}}.png".format(outpath, num=idx, width=pad_len)
+        outfile = "{}/{}_{num:0{width}}.png".format(outpath, kwargs['prefix'], num=idx, width=pad_len)
         roi = im[y:y+h, x:x+w]
         cv2.imwrite(outfile, fit_to_box(max_square_bbox, roi, **kwargs))
         cv2.rectangle(im, (x, y), (x+w, y+h), (0, 255, 0), 1)
@@ -57,15 +57,18 @@ def fit_to_box(box, roi, **kwargs):
         return cv2.copyMakeBorder(out_image, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0, 0])
     return cv2.copyMakeBorder(roi, top, bottom, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
 
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="segment a sprite sheet")
     parser.add_argument("-i", "--input", help="The input file", required=True)
     parser.add_argument("-o", "--output", help="The output folder to save segmented images", required=True)
     parser.add_argument("-b", "--background", help="The background color to convert to an alpha value. In the format R, G, B", required=False)
+    parser.add_argument("-p", "--prefix", help="The prefix to add to the individual sprite files", default="sprite")
     args = vars(parser.parse_args())
+
     if args["background"]:
         bg = [int(val) for val in args["background"].split(",")]
-        segment(args["input"], args["output"], background=bg)
+        segment(args["input"], args["output"], background=bg, prefix=args["prefix"])
     else:
         segment(args["input"], args["output"])
